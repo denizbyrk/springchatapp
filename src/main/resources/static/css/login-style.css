@@ -1,0 +1,108 @@
+@charset "UTF-8";
+
+/*general settings*/
+body {
+	background-color: #99C672;
+	font-family: Arial, sans-serif;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100vh;
+	margin: 0;
+}
+
+.top-left-logo {
+	position: absolute;
+	top: 20px;
+	left: 20px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 22px;
+	font-weight: bold;
+}
+
+.top-left-logo img {
+	width: 75px;
+	height: auto;
+}
+
+/*login container*/
+.container {
+	background-color: #21A85E;
+	border: 2px solid black;
+	border-radius: 1px;
+	padding-top: 20px;
+	padding-bottom: 20px;
+	padding-left: 40px;
+	padding-right: 40px;
+	border-radius: 12px;
+	box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+	width: 380px;
+	text-align: center;
+}
+
+/*title*/
+.container h2 {
+	font-size: 30px;
+	margin-bottom: 25px;
+	color: black;
+}
+
+/*form fields*/
+.form-group {
+	margin-bottom: 20px;
+	text-align: left;
+}
+
+/*form inputs*/
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+	width: 100%;
+	padding: 10px;
+	border: 2px solid black;
+	border-radius: 8px;
+	box-sizing: border-box;
+}
+
+/*button*/
+.login-button {
+	background-color: #99C672;
+	color: black;
+	padding: 12px;
+	width: 100%;
+	font-weight: bold;
+	border: 2px solid black;
+	border-radius: 8px;
+	font-size: 16px;
+	cursor: pointer;
+}
+
+/*button hover*/
+.login-button:hover {
+	background-color: rgb(184, 213, 130);
+}
+
+/*text*/
+p {
+	margin-top: 20px;
+	font-size: 14px;
+}
+
+/*link*/
+p a {
+	color: rgb(20, 0, 157);
+	text-decoration: none;
+}
+
+p a:hover {
+	text-decoration: underline;
+}
+
+.error {
+
+	margin-bottom: 15px;
+	color: red;
+	font-size: 26px;
+}

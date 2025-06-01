@@ -1,0 +1,85 @@
+body {
+	font-family: 'Segoe UI', sans-serif;
+	background-color: #f0f0f0;
+	margin: 0;
+	padding: 0;
+}
+
+.top-left-logo {
+	position: absolute;
+	top: 20px;
+	left: 20px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 22px;
+	font-weight: bold;
+}
+
+.top-left-logo img {
+	width: 75px;
+	height: auto;
+}
+
+.delete-container {
+	max-width: 500px;
+	margin: 100px auto;
+	padding: 2rem;
+	background: white;
+	border-radius: 12px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.delete-container h2 {
+	text-align: center;
+	margin-bottom: 1.5rem;
+	color: #2f5418;
+}
+
+.delete-container p {
+	text-align: center;
+	margin-bottom: 2rem;
+	color: #444;
+}
+
+.input-field {
+	width: 100%;
+	padding: 0.75rem;
+	border-radius: 8px;
+	border: 1px solid #ccc;
+	margin-bottom: 1.5rem;
+	font-size: 1rem;
+}
+
+.button-group {
+	display: flex;
+	justify-content: center;
+	gap: 1rem;
+}
+
+.btn {
+	padding: 0.75rem 1.5rem;
+	border-radius: 8px;
+	font-size: 1rem;
+	cursor: pointer;
+	border: none;
+	text-decoration: none;
+}
+
+.btn.delete {
+	background-color: #d9534f;
+	color: white;
+}
+
+.btn.delete:hover {
+	background-color: rgb(224, 117, 114);
+}
+
+.btn.back {
+	background-color: rgb(180, 180, 180);
+	color: black;
+}
+
+.btn.back:hover {
+	background-color: #ccc;
+}

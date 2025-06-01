@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="UTF-8">
+<title>TalkieTalk - My Friends</title>
+<link rel="icon" type="image/png" sizes="128x128"
+	th:href="@{/logo/logoSM.png}">
+<link rel="stylesheet" href="/css/friends-style.css">
+</head>
+
+<body>
+	<div class="header">
+		<div>
+			<img src="/logo/logo.png" alt="Logo"
+				style="width: 75px; height: auto;"> <label>TalkieTalk</label>
+		</div>
+		<div>My Friends</div>
+	</div>
+
+	<!-- SEARCH AMONG FRIENDS -->
+	<div class="search-container">
+		<input type="text" id="friendSearch" class="search-box"
+			placeholder="Search Friend">
+	</div>
+
+	<!-- FRIEND LIST -->
+	<div class="user-list" th:if="${#lists.isEmpty(friends)}">
+		<p
+			style="margin-left: 20px; font-size: 18px; font-weight: bold; color: #444;">Your
+			friend list is empty.</p>
+	</div>
+
+	<div class="user-list" th:if="${!#lists.isEmpty(friends)}">
+		<div class="user-item" th:each="friend : ${friends}">
+			<div class="user-left">
+				<div class="avatar-circle"
+					th:text="${friend.username.substring(0,1).toUpperCase()}"></div>
+				<span class="user-name" style="margin-left: 8px;"
+					th:text="${friend.username}">Friend Name</span>
+			</div>
+
+			<form th:action="@{/friends/remove}" method="post"
+				style="margin-left: auto;">
+				<input type="hidden" name="friendId" th:value="${friend.id}" />
+				<button type="submit" class="remove-btn">Remove</button>
+			</form>
+		</div>
+	</div>
+	<div class="manual-request" style="margin-left: 20px;">
+		<h3>Send Friend Request by User ID</h3>
+		<form th:action="@{/friends/request}" method="post">
+			<input type="number" name="toUserId" class="id-input"
+				placeholder="Enter User ID" required />
+			<button type="submit" class="send-request-btn">Send Request</button>
+		</form>
+	</div>
+
+	<div th:if="${message}" class="flash-message success">
+		<p th:text="${message}"></p>
+	</div>
+
+	<div th:if="${error}" class="flash-message error">
+		<p th:text="${error}"></p>
+	</div>
+	<button class="back-btn" onclick="window.location.href='/messages'">Back
+		To Messages</button>
+
+	<script>
+		document.getElementById('friendSearch').addEventListener('input', function () {
+			const filter = this.value.toLowerCase();
+			const userItems = document.querySelectorAll('.user-item');
+
+			userItems.forEach(item => {
+				const name = item.querySelector(".user-name").innerText.toLowerCase();
+				item.style.display = name.includes(filter) ? 'flex' : 'none';
+			});
+		});
+	</script>
+</body>
+
+</html>

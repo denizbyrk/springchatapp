@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>TalkieTalk - Login</title>
+	<link rel="icon" type="image/png" sizes="128x128" th:href="@{/logo/logoSM.png}">
+	<link rel="stylesheet" href="/css/login-style.css">
+</head>
+
+<body>
+
+	<div class="top-left-logo">
+		<img src="/logo/logo.png" alt="Logo">
+		<label>TalkieTalk</label>
+	</div>
+
+
+	<div class="container">
+		<h2>Login</h2>
+
+		<div th:if="${param.error}" class="error">
+			Invalid credentials!
+		</div>
+		<div th:if="${param.logout}" style="color:green;">
+			Logout successful!
+		</div>
+		<div th:if="${param.accountDeleted}" style="color:green;">
+			Account deleted successfully!
+		</div>
+
+		<form th:action="@{/login}" method="post">
+			<div class="form-group">
+				<input type="text" name="username" placeholder="Email" required />
+			</div>
+
+			<div class="form-group">
+				<input type="password" name="password" placeholder="Password" required />
+			</div>
+
+			<button type="submit" class="login-button">Login</button>
+		</form>
+
+		<p>Don't have an account? <a th:href="@{/register}">Register</a></p>
+	</div>
+
+</body>
+
+</html>

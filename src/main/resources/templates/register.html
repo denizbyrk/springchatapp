@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>TalkieTalk - Register</title>
+	<link rel="icon" type="image/png" sizes="128x128" th:href="@{/logo/logoSM.png}">
+	<link rel="stylesheet" href="/css/login-style.css">
+</head>
+
+<body>
+
+	<div class="top-left-logo">
+		<img src="/logo/logo.png" alt="Logo">
+		<label>TalkieTalk</label>
+	</div>
+
+
+	<div class="container">
+		<h2>Register</h2>
+
+		<form th:action="@{/register}" method="post">
+
+			<div class="form-group">
+				<input type="text" placeholder="Username" name="username" required />
+			</div>
+
+			<div class="form-group">
+				<input type="email" placeholder="Email" name="email" required />
+			</div>
+			<div class="form-group">
+				<input type="password" placeholder="Password" name="password" required />
+			</div>
+
+			<button type="submit" class="login-button">Create Account</button>
+		</form>
+
+		<div style="margin-top: 20px;">
+			<p>Already have an account? <a th:href="@{/login}">Login</a></p>
+		</div>
+	</div>
+
+</body>
+
+</html>

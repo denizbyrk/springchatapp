@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>TalkieTalk - Chat</title>
+<link rel="icon" type="image/png" sizes="128x128"
+	th:href="@{/logo/logoSM.png}">
+<link rel="stylesheet" href="/css/messages-style.css">
+</head>
+<body>
+	<div class="container">
+		<!-- Sidebar -->
+		<div class="sidebar">
+			<div class="top-left-logo">
+				<img src="/logo/logo.png" alt="Logo">
+			</div>
+
+			<div class="profile">
+				<div class="avatar-circle"
+					th:text="${currentUser.username.substring(0,1).toUpperCase()}"></div>
+				<h3 th:text="${currentUser.username}">User Name</h3>
+				<div style="display: flex; align-items: center; gap: 10px;">
+					<h6>
+						ID: <span th:text="${currentUser.id}"></span>
+					</h6>
+					<a th:href="@{/profile}" class="profile-btn">View Profile</a>
+				</div>
+			</div>
+
+			<input type="text" id="friendSearch" placeholder="My Friends"
+				class="search" />
+
+			<!-- Chat List -->
+			<div class="chat-list">
+				<div th:each="friend : ${friends}" class="chat-item"
+					th:attr="data-id=${friend.id}" onclick="loadChat(this)">
+
+					<!-- Avatar -->
+					<div class="avatar-circle"
+						th:text="${friend.username.substring(0,1).toUpperCase()}"></div>
+
+					<!-- Friend info + last message -->
+					<div style="margin-left: 8px; flex-grow: 1;">
+						<strong th:text="${friend.username}">Friend Name</strong>
+						<p class="last-message"
+							th:text="${lastMessages[friend.id]?.content ?: 'Click to view chat'}">
+						</p>
+					</div>
+
+					<!-- Time -->
+					<span class="chat-time"
+						th:text="${lastMessageTimes[friend.id] ?: 'Never'}"> </span>
+				</div>
+			</div>
+
+			<div class="sidebar-buttons">
+				<a href="/friends/list" class="btn">Users</a> <a
+					href="/friends/pending" class="btn">Friend Requests</a> <a
+					href="/logout" class="btn">Log Out</a>
+			</div>
+		</div>
+
+		<!-- Chat Area -->
+		<div class="chat-area">
+			<div class="chat-header">
+				<div class="avatar-circle" id="chatAvatarLetter"
+					style="display: none;">U</div>
+				<h2 id="chatTitle">Select a user</h2>
+			</div>
+
+			<div class="chat-box" id="chat-box">
+				<div th:each="message : ${messages}"
+					th:classappend="${message.sender.id} == ${currentUser.id} ? 'message sent' : 'message received'">
+					<strong
+						th:text="${message.sender.id} == ${currentUser.id} ? 'You:' : message.sender.username + ':'"></strong>
+					<small th:text="${#temporals.format(message.timestamp, 'HH:mm')}"></small>
+					<span th:text="${message.content}"></span>
+				</div>
+			</div>
+
+			<div class="chat-input" id="chatArea" style="display: none;">
+				<input type="text" id="messageInput" placeholder="Type a message..." />
+				<input type="hidden" id="receiverId" /> <input type="hidden"
+					id="currentUserId" th:value="${currentUser.id}" />
+				<button onclick="sendMessage()" class="send-btn">Send</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- WebSocket Client -->
+	<script
+		src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
+	<script
+		src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+	<script>
+const socket = new SockJS('/chat-websocket');
+const stompClient = Stomp.over(socket);
+const currentUserId = parseInt(document.getElementById("currentUserId").value);
+let currentChatRoom = null;
+let currentChatUserId = null;
+
+stompClient.connect({}, function () {
+    console.log('WebSocket connected');
+    
+    document.querySelectorAll('.chat-item').forEach(item => {
+        const friendId = parseInt(item.getAttribute('data-id'));
+        const roomName = "chat-" + Math.min(currentUserId, friendId) + "-" + Math.max(currentUserId, friendId);
+        const topic = "/topic/" + roomName;
+
+        stompClient.subscribe(topic, function (messageOutput) {
+            const msg = JSON.parse(messageOutput.body);
+
+            // 🔁 Eğer aktif sohbet bu kullanıcıyla AÇIKSA mesaj eklemeyi buradan kaldır!
+            // ❌ chatBox'a mesaj ekleme YOK, sadece sidebar güncellemesi yapılacak
+
+            const listItem = document.querySelector(`.chat-item[data-id="${msg.sender.id}"]`) 
+                          || document.querySelector(`.chat-item[data-id="${msg.receiver.id}"]`);
+
+            if (listItem) {
+                listItem.querySelector(".last-message").innerText = msg.content;
+                listItem.querySelector(".chat-time").innerText = formatTimestamp(msg.timestamp);
+            }
+        });
+    });
+    
+    
+    
+});
+
+function sendMessage() {
+    const content = document.getElementById("messageInput").value.trim();
+    const receiverId = parseInt(document.getElementById("receiverId").value);
+
+    if (content !== '') {
+        stompClient.send("/app/chat.send", {}, JSON.stringify({
+            content: content,
+            receiver: { id: receiverId },
+            sender: { id: currentUserId }
+        }));
+        document.getElementById("messageInput").value = '';
+    }
+}
+
+function loadChat(element) {
+    const friendId = parseInt(element.getAttribute('data-id'));
+    const friendName = element.querySelector("strong").innerText;
+
+    if (currentChatUserId === friendId) return;
+    currentChatUserId = friendId;
+
+    document.getElementById("receiverId").value = friendId;
+    document.getElementById("chatTitle").innerText = friendName;
+    document.querySelectorAll('.chat-item').forEach(item => item.classList.remove('selected'));
+    element.classList.add('selected');
+    document.getElementById("chatArea").style.display = 'flex';
+
+    const firstLetter = friendName.charAt(0).toUpperCase();
+    document.getElementById("chatAvatarLetter").innerText = firstLetter;
+    document.getElementById("chatAvatarLetter").style.display = 'flex';
+
+    if (currentChatRoom) {
+        console.log('Unsubscribing from:', currentChatRoom);
+    }
+
+    const chatRoom = "chat-" + Math.min(currentUserId, friendId) + "-" + Math.max(currentUserId, friendId);
+    currentChatRoom = "/topic/" + chatRoom;
+
+    stompClient.subscribe(currentChatRoom, function (messageOutput) {
+        const msg = JSON.parse(messageOutput.body);
+        const chatBox = document.getElementById("chat-box");
+
+        const newMsg = document.createElement("div");
+        newMsg.classList.add("message", msg.sender.id === currentUserId ? "sent" : "received");
+        newMsg.innerHTML = `<strong>${msg.sender.id === currentUserId ? 'You:' : msg.sender.username + ':'}</strong> 
+                            <span>${msg.content}</span> 
+                            <small class="timestamp">${formatTimestamp(msg.timestamp)}</small>`;
+        chatBox.appendChild(newMsg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // ✅ Sidebar'daki son mesaj ve zamanı güncelle (alan kullanıcı için)
+        const listItem = document.querySelector(`.chat-item[data-id="${msg.sender.id}"]`);
+        if (listItem) {
+            listItem.querySelector(".last-message").innerText = msg.content;
+            listItem.querySelector(".chat-time").innerText = formatTimestamp(msg.timestamp);
+        }
+    });
+
+    fetch(`/chat/messages/${friendId}`)
+        .then(response => response.json())
+        .then(messages => {
+            const chatBox = document.getElementById("chat-box");
+            chatBox.innerHTML = '';
+            messages.forEach(msg => {
+                const msgDiv = document.createElement("div");
+                msgDiv.classList.add("message", msg.sender.id === currentUserId ? "sent" : "received");
+                msgDiv.innerHTML = `<strong>${msg.sender.id === currentUserId ? 'You:' : msg.sender.username + ':'}</strong> 
+                                    <span>${msg.content}</span> 
+                                    <small class="timestamp">${formatTimestamp(msg.timestamp)}</small>`;
+                chatBox.appendChild(msgDiv);
+            });
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+}
+
+function formatTimestamp(timestamp) {
+    const date = new Date(timestamp);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+}
+</script>
+
+</body>
+</html>
