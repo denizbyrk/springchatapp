@@ -207,6 +207,19 @@ function formatTimestamp(timestamp) {
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
 }
+document.getElementById('friendSearch').addEventListener('input', function () {
+	const filter = this.value.toLowerCase();
+	const chatItems = document.querySelectorAll('.chat-item');
+
+	chatItems.forEach(item => {
+		const name = item.querySelector("strong").innerText.toLowerCase();
+		if (name.includes(filter)) {
+			item.style.display = 'flex';
+		} else {
+			item.style.display = 'none';
+		}
+	});
+});		
 </script>
 
 </body>
