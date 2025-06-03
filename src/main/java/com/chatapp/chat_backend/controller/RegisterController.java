@@ -26,12 +26,23 @@ public class RegisterController {
     }
 
     @PostMapping("/register")
-    public String registerUser(@RequestParam String username, @RequestParam String email, @RequestParam String password) {
+    public String registerUser(@RequestParam String username,
+                               @RequestParam String email,
+                               @RequestParam String password,
+                               Model model) {
+
+        if (userRepository.findByEmail(email).isPresent()) {
+            model.addAttribute("error", "This email is already in use.");
+            model.addAttribute("user", new User());
+            return "register";
+        }
+
         User user = new User();
         user.setUsername(username);
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
         userRepository.save(user);
+
         return "redirect:/login";
     }
 }
