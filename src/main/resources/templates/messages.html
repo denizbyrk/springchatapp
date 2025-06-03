@@ -140,66 +140,68 @@ function sendMessage() {
     }
 }
 
-function loadChat(element) {
-    const friendId = parseInt(element.getAttribute('data-id'));
-    const friendName = element.querySelector("strong").innerText;
+		let currentSubscription = null;
 
-    if (currentChatUserId === friendId) return;
-    currentChatUserId = friendId;
+		function loadChat(element) {
+			const friendId = parseInt(element.getAttribute('data-id'));
+			const friendName = element.querySelector("strong").innerText;
 
-    document.getElementById("receiverId").value = friendId;
-    document.getElementById("chatTitle").innerText = friendName;
-    document.querySelectorAll('.chat-item').forEach(item => item.classList.remove('selected'));
-    element.classList.add('selected');
-    document.getElementById("chatArea").style.display = 'flex';
+			if (currentChatUserId === friendId) return;
+			currentChatUserId = friendId;
 
-    const firstLetter = friendName.charAt(0).toUpperCase();
-    document.getElementById("chatAvatarLetter").innerText = firstLetter;
-    document.getElementById("chatAvatarLetter").style.display = 'flex';
+			document.getElementById("receiverId").value = friendId;
+			document.getElementById("chatTitle").innerText = friendName;
+			document.querySelectorAll('.chat-item').forEach(item => item.classList.remove('selected'));
+			element.classList.add('selected');
+			document.getElementById("chatArea").style.display = 'flex';
 
-    if (currentChatRoom) {
-        console.log('Unsubscribing from:', currentChatRoom);
-    }
+			const firstLetter = friendName.charAt(0).toUpperCase();
+			document.getElementById("chatAvatarLetter").innerText = firstLetter;
+			document.getElementById("chatAvatarLetter").style.display = 'flex';
 
-    const chatRoom = "chat-" + Math.min(currentUserId, friendId) + "-" + Math.max(currentUserId, friendId);
-    currentChatRoom = "/topic/" + chatRoom;
+			if (currentSubscription) {
+				currentSubscription.unsubscribe();
+				console.log('Unsubscribed from previous chat room');
+			}
 
-    stompClient.subscribe(currentChatRoom, function (messageOutput) {
-        const msg = JSON.parse(messageOutput.body);
-        const chatBox = document.getElementById("chat-box");
+			const chatRoom = "chat-" + Math.min(currentUserId, friendId) + "-" + Math.max(currentUserId, friendId);
+			currentChatRoom = "/topic/" + chatRoom;
 
-        const newMsg = document.createElement("div");
-        newMsg.classList.add("message", msg.sender.id === currentUserId ? "sent" : "received");
-        newMsg.innerHTML = `<strong>${msg.sender.id === currentUserId ? 'You:' : msg.sender.username + ':'}</strong> 
+			currentSubscription = stompClient.subscribe(currentChatRoom, function (messageOutput) {
+				const msg = JSON.parse(messageOutput.body);
+				const chatBox = document.getElementById("chat-box");
+
+				const newMsg = document.createElement("div");
+				newMsg.classList.add("message", msg.sender.id === currentUserId ? "sent" : "received");
+				newMsg.innerHTML = `<strong>${msg.sender.id === currentUserId ? 'You:' : msg.sender.username + ':'}</strong> 
                             <span>${msg.content}</span> 
                             <small class="timestamp">${formatTimestamp(msg.timestamp)}</small>`;
-        chatBox.appendChild(newMsg);
-        chatBox.scrollTop = chatBox.scrollHeight;
+				chatBox.appendChild(newMsg);
+				chatBox.scrollTop = chatBox.scrollHeight;
 
-        // ✅ Sidebar'daki son mesaj ve zamanı güncelle (alan kullanıcı için)
-        const listItem = document.querySelector(`.chat-item[data-id="${msg.sender.id}"]`);
-        if (listItem) {
-            listItem.querySelector(".last-message").innerText = msg.content;
-            listItem.querySelector(".chat-time").innerText = formatTimestamp(msg.timestamp);
-        }
-    });
+				const listItem = document.querySelector(`.chat-item[data-id="${msg.sender.id}"]`);
+				if (listItem) {
+					listItem.querySelector(".last-message").innerText = msg.content;
+					listItem.querySelector(".chat-time").innerText = formatTimestamp(msg.timestamp);
+				}
+			});
 
-    fetch(`/chat/messages/${friendId}`)
-        .then(response => response.json())
-        .then(messages => {
-            const chatBox = document.getElementById("chat-box");
-            chatBox.innerHTML = '';
-            messages.forEach(msg => {
-                const msgDiv = document.createElement("div");
-                msgDiv.classList.add("message", msg.sender.id === currentUserId ? "sent" : "received");
-                msgDiv.innerHTML = `<strong>${msg.sender.id === currentUserId ? 'You:' : msg.sender.username + ':'}</strong> 
+			fetch(`/chat/messages/${friendId}`)
+				.then(response => response.json())
+				.then(messages => {
+					const chatBox = document.getElementById("chat-box");
+					chatBox.innerHTML = '';
+					messages.forEach(msg => {
+						const msgDiv = document.createElement("div");
+						msgDiv.classList.add("message", msg.sender.id === currentUserId ? "sent" : "received");
+						msgDiv.innerHTML = `<strong>${msg.sender.id === currentUserId ? 'You:' : msg.sender.username + ':'}</strong> 
                                     <span>${msg.content}</span> 
                                     <small class="timestamp">${formatTimestamp(msg.timestamp)}</small>`;
-                chatBox.appendChild(msgDiv);
-            });
-            chatBox.scrollTop = chatBox.scrollHeight;
-        });
-}
+						chatBox.appendChild(msgDiv);
+					});
+					chatBox.scrollTop = chatBox.scrollHeight;
+				});
+		}
 
 function formatTimestamp(timestamp) {
     const date = new Date(timestamp);
