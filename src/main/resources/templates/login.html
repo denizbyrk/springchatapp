@@ -21,7 +21,7 @@
 		<div th:if="${param.error}" class="error">
 			Invalid credentials!
 		</div>
-		<div th:if="${param.logout}" style="color:green;">
+		<div th:if="${param.logout}" class="error" style="color:rgb(0, 0, 255);">
 			Logout successful!
 		</div>
 		<div th:if="${param.accountDeleted}" style="color:green;">
