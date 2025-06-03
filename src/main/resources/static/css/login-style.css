@@ -106,3 +106,10 @@ p a:hover {
 	color: red;
 	font-size: 26px;
 }
+
+.error-message {
+    color: red;
+    margin-bottom: 15px;
+    text-align: center;
+    font-weight: bold;
+}
